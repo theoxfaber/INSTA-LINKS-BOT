@@ -7,7 +7,7 @@ from pyrogram import types
 
 from database.ia_filterdb import Media
 from database.users_chats_db import db
-from info import API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL, UPTIME, WEBHOOK, LOG_MSG
+from info import API_ID, API_HASH, BOT_TOKEN, LOG_CHANNEL, UPTIME, WEBHOOK_URL, LOG_MSG
 from utils import temp, __repo__, __license__, __copyright__, __version__
 from typing import Union, Optional, AsyncGenerator
 
@@ -55,10 +55,17 @@ class Bot(Client):
         logger.info(LOG_MSG.format(me.first_name, date, tame, __repo__, __version__, __license__, __copyright__))
         try: await self.send_message(LOG_CHANNEL, text=LOG_MSG.format(me.first_name, date, tame, __repo__, __version__, __license__, __copyright__), disable_web_page_preview=True)   
         except Exception as e: logger.warning(f"Bot Isn't Able To Send Message To LOG_CHANNEL \n{e}")
-        if WEBHOOK is True:
+        if WEBHOOK_URL:
             app = web.AppRunner(await web_server())
             await app.setup()
-            await web.TCPSite(app, "0.0.0.0", 8080).start()
+            port = int(os.environ.get("PORT", "8080"))
+            await web.TCPSite(app, "0.0.0.0", port).start()
+            import requests
+            try:
+                # Set telegram webhook
+                requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={WEBHOOK_URL}/webhook", timeout=10)
+            except Exception as e:
+                logger.error(f"Failed setting webhook: {e}")
             logger.info("Web Response Is Running......🕸️")
             
     async def stop(self, *args):
@@ -78,10 +85,17 @@ class Bot(Client):
                 current += 1
 
 
-        
-Bot().run()
-
-
+if __name__ == "__main__":
+    import asyncio
+    b = Bot()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(b.start())
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.run_until_complete(b.stop())
 
 
 

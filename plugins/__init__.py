@@ -12,17 +12,6 @@ routes = web.RouteTableDef()
 async def root_route_handler(request):
     return web.json_response(text="ᴍᴀᴅᴇ ʙʏ: Mᴋɴ Bᴏᴛs™")
 
-@routes.post("/webhook")
-async def webhook_handler(request):
-    try:
-        data = await request.json()
-        # In a real Pyrogram integration, parsing Bot API JSON back to MTProto updates is complex.
-        # But for webhook mode, we accept the update and process manually or via external dispatcher.
-        pass
-    except Exception as e:
-        print("Webhook Error:", e)
-    return web.Response(status=200)
-
 async def web_server():
     web_app = web.Application(client_max_size=30000000)
     web_app.add_routes(routes)

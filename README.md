@@ -59,8 +59,6 @@
 * `DATABASE_NAME`: Name of the database in [mongoDB](https://www.mongodb.com). For more help watch this [video](https://youtu.be/1G1XwEOnxxo)
 * `LOG_CHANNEL` : A channel to log the activities of bot. Make sure bot is an admin in the channel.
 * `SUPPORT_CHAT` : Username of a Support Group / ADMIN. ( Should be username without @ and not ID
-* `REDIS_URL` : Redis instance URL for pagination state management. E.g. redis://redis:6379
-* `WEBHOOK_URL` : URL of your server to receive Telegram updates. E.g. https://my-bot.website.com
   
 ### Optional Variables
 * `PICS`: Telegraph links of images to show in start message.( Multiple images can be used seperated by space )

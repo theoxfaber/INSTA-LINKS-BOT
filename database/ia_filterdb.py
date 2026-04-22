@@ -88,6 +88,9 @@ async def get_file_details(query):
     filedetails = await cursor.to_list(length=1)
     return filedetails
 
+async def get_all_file_names():
+    return await Media.collection.distinct("file_name")
+
 
 def encode_file_id(s: bytes) -> str:
     r = b""

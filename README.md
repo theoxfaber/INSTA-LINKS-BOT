@@ -19,6 +19,19 @@
 
 **Professor-Bot** is a high-performance, feature-rich Telegram Auto-Filter Bot designed for scale and intelligence. Built with **Pyrogram**, **MongoDB**, and **Redis**, it now features cutting-edge **Semantic Vector Search** and **Rust-powered indexing** for near-instant results across millions of files.
 
+<details>
+<summary><b>Features Checklist</b></summary>
+
+- [x] ⚡ Auto & Manual Filters
+- [x] 🧠 Semantic Vector Search
+- [x] 🔍 RapidFuzz Typo Handling
+- [x] 🎞️ IMDB Integration (Posters, Ratings)
+- [x] 🔋 Redis-based State Persistence
+- [x] 🦀 Rust-powered Search Engine (Tantivy)
+- [x] 🐳 Dockerized Deployment
+- [x] ✉️ Broadcast & Group Management
+</details>
+
 ---
 
 ## 🔥 Key Upgrades (v4.5.1)
@@ -37,6 +50,7 @@
 
 ### 🔑 Essential Variables
 
+<<<<<<< HEAD
 | Variable | Description | Source |
 | :--- | :--- | :--- |
 | `BOT_TOKEN` | Your Telegram Bot Token | [@BotFather](https://t.me/BotFather) |
@@ -73,6 +87,53 @@
 docker-compose up --build -d
 ```
 
+<details>
+<summary><b>Deploy to VPS (Manual)</b></summary>
+
+```bash
+apt update && apt upgrade -y
+apt install git -y  
+git clone https://github.com/MrMKN/PROFESSOR-BOT 
+cd PROFESSOR-BOT
+bash vps.sh
+```
+</details>
+
+<details>
+<summary><b>Basic Commands</b></summary>
+
+```
+start - check bot alive
+settings - get settings 
+logs - to get the rescent errors
+restart - restart the server
+update - update from git latest 
+stats - to get status of files in db.
+filter - add manual filters
+filters - view filters
+connect - connect to PM.
+disconnect - disconnect from PM
+connections - check all connections
+del - delete a filter
+delall - delete all filters
+deleteall - delete all index(autofilter)
+delete - delete a specific file from index.
+info - get user info
+id - get tg ids.
+imdb - fetch info from imdb.
+users - to get list of my users and ids.
+chats - to get list of the my chats and ids 
+leave  - to leave from a chat.
+disable  -  do disable a chat.
+enable - re-enable chat.
+ban_user  - to ban a user.
+unban_user  - to unban a user.
+channel - to get list of total connected channels
+broadcast - to broadcast a message
+```
+</details>
+```
+
 ### ☁️ Heroku / Koyeb
 
 [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/MrMKN/PROFESSOR-BOT)
@@ -90,7 +151,7 @@ docker-compose up --build -d
 ## 📜 License & Credits
 
 - Derived from **Team Eva-Maria**. Special thanks to the original contributors.
-- Licensed under **GNU AGPL 2.0**.
+- Licensed under **GNU AGPL 3.0**.
 - **Disclaimer**: Unauthorized selling of this code is strictly prohibited.
 
 ---

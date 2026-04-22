@@ -357,7 +357,7 @@ async def manual_filters(client, message, text=False):
                         if btn == "[]":
                             await client.send_message(group_id, reply_text, disable_web_page_preview=True, reply_to_message_id=reply_id)
                         else:
-                            button = eval(btn)
+                            button = ast.literal_eval(btn)
                             await client.send_message(
                                 group_id,
                                 reply_text,
@@ -373,7 +373,7 @@ async def manual_filters(client, message, text=False):
                             reply_to_message_id=reply_id
                         )
                     else:
-                        button = eval(btn)
+                        button = ast.literal_eval(btn)
                         await message.reply_cached_media(
                             fileid,
                             caption=reply_text or "",
@@ -416,7 +416,7 @@ async def global_filters(client, message, text=False):
                             await message.delete()
 
                         else:
-                            button = eval(btn)
+                            button = ast.literal_eval(btn)
                             knd2 = await client.send_message(
                                 group_id,
                                 reply_text,
@@ -440,7 +440,7 @@ async def global_filters(client, message, text=False):
                         await message.delete()
 
                     else:
-                        button = eval(btn)
+                        button = ast.literal_eval(btn)
                         knd = await message.reply_cached_media(
                             fileid,
                             caption=reply_text or "",

@@ -40,3 +40,5 @@ pytz
 
 rapidfuzz==3.6.1
 redis==5.0.0
+sentence-transformers==2.2.2
+torch==2.0.1

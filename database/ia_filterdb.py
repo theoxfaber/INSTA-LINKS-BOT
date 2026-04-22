@@ -9,6 +9,21 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from marshmallow.exceptions import ValidationError
 from info import FILE_DB_URL, FILE_DB_NAME, COLLECTION_NAME, MAX_RIST_BTNS
 
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    import asyncio
+except ImportError:
+    SentenceTransformer = None
+
+_embed_model = None
+
+def get_embed_model():
+    global _embed_model
+    if _embed_model is None and SentenceTransformer is not None:
+        _embed_model = SentenceTransformer('all-MiniLM-L6-v2')
+    return _embed_model
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -26,6 +41,7 @@ class Media(Document):
     file_type = fields.StrField(allow_none=True)
     mime_type = fields.StrField(allow_none=True)
     caption = fields.StrField(allow_none=True)
+    vector = fields.ListField(fields.FloatField(), allow_none=True)
 
     class Meta:
         collection_name = COLLECTION_NAME
@@ -34,6 +50,11 @@ class Media(Document):
 async def save_file(media):
     file_id, file_ref = unpack_new_file_id(media.file_id)
     file_name = re.sub(r"@\w+|(_|\-|\.|\+)", " ", str(media.file_name))
+    vector = None
+    model = get_embed_model()
+    if model is not None:
+        loop = asyncio.get_event_loop()
+        vector = await loop.run_in_executor(None, lambda: model.encode(file_name).tolist())
     try:
         file = Media(
             file_id=file_id,
@@ -41,7 +62,8 @@ async def save_file(media):
             file_name=file_name,
             file_size=media.file_size,
             file_type=media.file_type,
-            mime_type=media.mime_type
+            mime_type=media.mime_type,
+            vector=vector
         )
     except ValidationError:
         logger.exception('Error Occurred While Saving File In Database')
@@ -58,7 +80,56 @@ async def save_file(media):
 
 
 
+async def semantic_search(query: str, max_results: int, offset: int = 0):
+    model = get_embed_model()
+    if model is None:
+        return None
+    
+    loop = asyncio.get_event_loop()
+    query_vector = await loop.run_in_executor(None, lambda: model.encode(query).tolist())
+    
+    pipeline = [
+        {
+             "$vectorSearch": {
+                 "index": "vector_index",
+                 "path": "vector",
+                 "queryVector": query_vector,
+                 "numCandidates": 100,
+                 "limit": max_results + offset
+             }
+        },
+        {
+             "$project": {
+                 "score": {"$meta": "vectorSearchScore"},
+                 "file_id": "$_id", "file_ref": 1, "file_name": 1, "file_size": 1, "file_type": 1, "mime_type": 1, "caption": 1, "vector": 1
+             }
+        }
+    ]
+    try:
+        cursor = Media.collection.aggregate(pipeline)
+        results = await cursor.to_list(length=max_results + offset)
+        if results and results[0].get("score", 0) > 0.75:
+            results = results[offset:offset+max_results]
+            return [Media(**{k: v for k, v in r.items() if k != 'score' and k != 'file_id'}, file_id=r['file_id']) for r in results], '', len(results)
+    except Exception:
+        cursor = Media.find({"vector": {"$exists": True}})
+        all_docs = await cursor.to_list(length=10000)
+        if all_docs:
+            docs_vectors = np.array([doc.vector for doc in all_docs])
+            query_vec_np = np.array(query_vector)
+            scores = docs_vectors.dot(query_vec_np)
+            top_k_idx = np.argsort(scores)[-max_results - offset:][::-1]
+            if len(top_k_idx) > 0 and scores[top_k_idx[0]] > 0.75:
+                top_k_idx = top_k_idx[offset:offset+max_results]
+                res = [all_docs[i] for i in top_k_idx]
+                return res, '', len(res)
+    return None
+
 async def get_search_results(query, file_type=None, max_results=(MAX_RIST_BTNS), offset=0, filter=False):
+    sem_results = await semantic_search(query, max_results, offset)
+    if sem_results and sem_results[0]:
+        return sem_results
+
     query = query.strip()
     if not query: raw_pattern = '.'
     elif ' ' not in query: raw_pattern = r'(\b|[\.\+\-_])' + query + r'(\b|[\.\+\-_])'

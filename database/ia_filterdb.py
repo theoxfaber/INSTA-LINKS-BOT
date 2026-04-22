@@ -108,7 +108,7 @@ async def semantic_search(query: str, max_results: int, offset: int = 0):
     try:
         cursor = Media.collection.aggregate(pipeline)
         results = await cursor.to_list(length=max_results + offset)
-        if results and results[0].get("score", 0) > 0.75:
+        if results and results[0].get("score", 0) > 0.65: # Lowered threshold for natural language queries
             results = results[offset:offset+max_results]
             return [Media(**{k: v for k, v in r.items() if k != 'score' and k != 'file_id'}, file_id=r['file_id']) for r in results], '', len(results)
     except Exception:
@@ -117,12 +117,15 @@ async def semantic_search(query: str, max_results: int, offset: int = 0):
         if all_docs:
             docs_vectors = np.array([doc.vector for doc in all_docs])
             query_vec_np = np.array(query_vector)
+            
+            # Simple cosine similarity via dot product (assuming vectors are normalized by the library)
             scores = docs_vectors.dot(query_vec_np)
-            top_k_idx = np.argsort(scores)[-max_results - offset:][::-1]
-            if len(top_k_idx) > 0 and scores[top_k_idx[0]] > 0.75:
+            top_k_idx = np.argsort(scores)[::-1]
+            
+            if len(top_k_idx) > 0 and scores[top_k_idx[0]] > 0.65:
                 top_k_idx = top_k_idx[offset:offset+max_results]
                 res = [all_docs[i] for i in top_k_idx]
-                return res, '', len(res)
+                return res, '', len(all_docs)
     return None
 
 async def get_search_results(query, file_type=None, max_results=(MAX_RIST_BTNS), offset=0, filter=False):

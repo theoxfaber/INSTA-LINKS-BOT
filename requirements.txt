@@ -39,3 +39,4 @@ pytz
 
 
 rapidfuzz==3.6.1
+redis==5.0.0

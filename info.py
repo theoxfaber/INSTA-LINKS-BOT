@@ -37,6 +37,7 @@ DATABASE_NAME = environ.get('DATABASE_NAME', "Cluster0")
 FILE_DB_URL = environ.get("FILE_DB_URL", DATABASE_URL)
 FILE_DB_NAME = environ.get("FILE_DB_NAME", DATABASE_NAME)
 COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Telegram_files')
+REDIS_URL = environ.get('REDIS_URL', 'redis://localhost:6379')
 
 # Filters Configuration 
 MAX_RIST_BTNS = int(environ.get('MAX_RIST_BTNS', "10"))

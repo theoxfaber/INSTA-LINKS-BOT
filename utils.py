@@ -2,8 +2,12 @@ import logging, os, re, asyncio, requests, aiohttp
 from pyrogram.errors import InputUserDeactivated, UserNotParticipant, FloodWait, UserIsBlocked, PeerIdInvalid                             
 from pyrogram.types import Message, InlineKeyboardButton
 from pyrogram import filters, enums
-from info import AUTH_CHANNEL, LONG_IMDB_DESCRIPTION, MAX_LIST_ELM, SHORT_URL, SHORT_API
+from info import AUTH_CHANNEL, LONG_IMDB_DESCRIPTION, MAX_LIST_ELM, SHORT_URL, SHORT_API, REDIS_URL
 from imdb import Cinemagoer
+import redis.asyncio as redis
+import json
+
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 from typing import Union, List
 from datetime import datetime, timedelta
 from database.users_chats_db import db
@@ -32,6 +36,32 @@ class temp(object):
     PM_BUTTONS = {}
     PM_SPELL = {}
     GP_SPELL = {}
+
+async def save_gp_buttons(key, search):
+    await redis_client.setex(f"GP_BUTTONS_{key}", 3600, search)
+
+async def get_gp_buttons(key):
+    return await redis_client.get(f"GP_BUTTONS_{key}")
+
+async def save_pm_buttons(key, search):
+    await redis_client.setex(f"PM_BUTTONS_{key}", 3600, search)
+
+async def get_pm_buttons(key):
+    return await redis_client.get(f"PM_BUTTONS_{key}")
+
+async def save_gp_spell(key, movielist):
+    await redis_client.setex(f"GP_SPELL_{key}", 3600, json.dumps(movielist))
+
+async def get_gp_spell(key):
+    data = await redis_client.get(f"GP_SPELL_{key}")
+    return json.loads(data) if data else None
+
+async def save_pm_spell(key, movielist):
+    await redis_client.setex(f"PM_SPELL_{key}", 3600, json.dumps(movielist))
+
+async def get_pm_spell(key):
+    data = await redis_client.get(f"PM_SPELL_{key}")
+    return json.loads(data) if data else None
 
 async def is_subscribed(bot, query):
     try:
@@ -144,16 +174,17 @@ __copyright__ = "Copyright (C) 2023-present MrMKN <https://github.com/MrMKN>"
 
 
 async def get_settings(group_id):
-    settings = temp.SETTINGS.get(group_id)
-    if not settings:
-        settings = await db.get_settings(group_id)
-        temp.SETTINGS[group_id] = settings
+    settings = await redis_client.get(f"SETTINGS_{group_id}")
+    if settings:
+        return json.loads(settings)
+    settings = await db.get_settings(group_id)
+    await redis_client.setex(f"SETTINGS_{group_id}", 3600, json.dumps(settings))
     return settings
     
 async def save_group_settings(group_id, key, value):
     current = await get_settings(group_id)
     current[key] = value
-    temp.SETTINGS[group_id] = current
+    await redis_client.setex(f"SETTINGS_{group_id}", 3600, json.dumps(current))
     await db.update_settings(group_id, current)
    
 def get_size(size):

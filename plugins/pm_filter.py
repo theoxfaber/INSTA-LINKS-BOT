@@ -6,7 +6,7 @@ from info import AUTH_USERS, PM_IMDB, SINGLE_BUTTON, PROTECT_CONTENT, SPELL_CHEC
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram import Client, filters, enums 
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
-from utils import get_size, is_subscribed, get_poster, temp, get_settings, save_group_settings
+from utils import get_size, is_subscribed, get_poster, temp, get_settings, save_group_settings, get_pm_buttons, save_pm_buttons, get_pm_spell, save_pm_spell
 from database.users_chats_db import db
 from database.ia_filterdb import Media, get_file_details, get_search_results, get_all_file_names
 from rapidfuzz import process, fuzz
@@ -30,7 +30,7 @@ async def pm_next_page(bot, query):
     ident, req, key, offset = query.data.split("_")
     try: offset = int(offset)
     except: offset = 0
-    search = temp.PM_BUTTONS.get(str(key))
+    search = await get_pm_buttons(str(key))
     if not search: return await query.answer("Yᴏᴜ Aʀᴇ Usɪɴɢ Oɴᴇ Oғ Mʏ Oʟᴅ Mᴇssᴀɢᴇs, Pʟᴇᴀsᴇ Sᴇɴᴅ Tʜᴇ Rᴇǫᴜᴇsᴛ Aɢᴀɪɴ", show_alert=True)
 
     files, n_offset, total = await get_search_results(search.lower(), offset=offset, filter=True)
@@ -82,7 +82,7 @@ async def pm_spoll_tester(bot, query):
     _, user, movie_ = query.data.split('#')
     if movie_ == "close_spellcheck":
         return await query.message.delete()
-    movies = temp.PM_SPELL.get(str(query.message.reply_to_message.id))
+    movies = await get_pm_spell(str(query.message.reply_to_message.id))
     if not movies:
         return await query.answer("Yᴏᴜ Aʀᴇ Usɪɴɢ Oɴᴇ Oғ Mʏ Oʟᴅ Mᴇssᴀɢᴇs, Pʟᴇᴀsᴇ Sᴇɴᴅ Tʜᴇ Rᴇǫᴜᴇsᴛ Aɢᴀɪɴ", show_alert=True)
     movie = movies[(int(movie_))]
@@ -128,7 +128,7 @@ async def pm_AutoFilter(client, msg, pmspoll=False):
     btn.insert(0, [InlineKeyboardButton("🔗 ʜᴏᴡ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ 🔗", "howdl")])
     if offset != "":
         key = f"{message.id}"
-        temp.PM_BUTTONS[key] = search
+        await save_pm_buttons(key, search)
         req = message.from_user.id if message.from_user else 0
         btn.append(
             [InlineKeyboardButton(text=f"❄️ ᴩᴀɢᴇꜱ 1/{math.ceil(int(total_results) / 6)}", callback_data="pages"),
@@ -223,7 +223,7 @@ async def pm_spoll_choker(msg):
         return await k.delete()
 
     user = msg.from_user.id if msg.from_user else 0
-    temp.PM_SPELL[str(msg.id)] = movielist
+    await save_pm_spell(str(msg.id), movielist)
     btn = [[InlineKeyboardButton(text=movie.strip(), callback_data=f"pmspolling#{user}#{k}")] for k, movie in enumerate(movielist)]
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'pmspolling#{user}#close_spellcheck')])
     await msg.reply("I Cᴏᴜʟᴅɴ'ᴛ Fɪɴᴅ Aɴʏᴛʜɪɴɢ Rᴇʟᴀᴛᴇᴅ Tᴏ Tʜᴀᴛ. Dɪᴅ Yᴏᴜ Mᴇᴀɴ Aɴʏ Oɴᴇ Oғ Tʜᴇsᴇ?", reply_markup=InlineKeyboardMarkup(btn), quote=True)

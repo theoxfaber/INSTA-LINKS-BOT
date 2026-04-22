@@ -10,7 +10,7 @@ from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, CUSTOM_FILE_CAPTION, AUTH_GRO
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram import Client, filters, enums 
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
-from utils import get_size, is_subscribed, get_poster, temp, get_settings, save_group_settings
+from utils import get_size, is_subscribed, get_poster, temp, get_settings, save_group_settings, get_gp_buttons, save_gp_buttons, get_gp_spell, save_gp_spell
 from database.users_chats_db import db
 from database.ia_filterdb import Media, get_file_details, get_search_results, get_all_file_names
 from rapidfuzz import process, fuzz
@@ -78,7 +78,7 @@ async def next_page(bot, query):
         return await query.answer(BUTTON_LOCK_TEXT.format(query.from_user.first_name), show_alert=True)
     try: offset = int(offset)
     except: offset = 0
-    search = temp.GP_BUTTONS.get(key)
+    search = await get_gp_buttons(key)
     if not search: return await query.answer("Yᴏᴜ Aʀᴇ Usɪɴɢ Oɴᴇ Oғ Mʏ Oʟᴅ Mᴇssᴀɢᴇs, Pʟᴇᴀsᴇ Sᴇɴᴅ Tʜᴇ Rᴇǫᴜᴇsᴛ Aɢᴀɪɴ", show_alert=True)
     
     files, n_offset, total = await get_search_results(search, offset=offset, filter=True)
@@ -140,7 +140,7 @@ async def advantage_spoll_choker(bot, query):
         return await query.answer("okDa", show_alert=True)
     if movie_ == "close_spellcheck":
         return await query.message.delete()
-    movies = temp.GP_SPELL.get(query.message.reply_to_message.id)
+    movies = await get_gp_spell(str(query.message.reply_to_message.id))
     if not movies:
         return await query.answer("Yᴏᴜ Aʀᴇ Usɪɴɢ Oɴᴇ Oғ Mʏ Oʟᴅ Mᴇssᴀɢᴇs, Pʟᴇᴀsᴇ Sᴇɴᴅ Tʜᴇ Rᴇǫᴜᴇsᴛ Aɢᴀɪɴ", show_alert=True)
     movie = movies[(int(movie_))]
@@ -220,7 +220,7 @@ async def auto_filter(client, msg, spoll=False):
     btn.insert(0, [InlineKeyboardButton("🔗 ʜᴏᴡ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ 🔗", "howdl")])
     if offset != "":
         key = f"{message.chat.id}-{message.id}"
-        temp.GP_BUTTONS[key] = search
+        await save_gp_buttons(key, search)
         req = message.from_user.id if message.from_user else 0
         btn.append(
             [InlineKeyboardButton(text=f"❄️ ᴩᴀɢᴇꜱ 1/{math.ceil(int(total_results) / 6)}", callback_data="pages"),
@@ -318,7 +318,7 @@ async def advantage_spell_chok(msg):
         return await k.delete()
 
     user = msg.from_user.id if msg.from_user else 0
-    temp.GP_SPELL[msg.id] = movielist
+    await save_gp_spell(str(msg.id), movielist)
     btn = [[InlineKeyboardButton(text=movie.strip(), callback_data=f"spolling#{user}#{k}")] for k, movie in enumerate(movielist)]
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
     await msg.reply("I Cᴏᴜʟᴅɴ'ᴛ Fɪɴᴅ Aɴʏᴛʜɪɴɢ Rᴇʟᴀᴛᴇᴅ Tᴏ Tʜᴀᴛ. Dɪᴅ Yᴏᴜ Mᴇᴀɴ Aɴʏ Oɴᴇ Oғ Tʜᴇsᴇ?", reply_markup=InlineKeyboardMarkup(btn))

@@ -36,7 +36,7 @@
 - [x] Url Shortner In Autofilter
 - [x] Custom Button Lock
 - [x] Image Editor & Background Remover
-- [x] Telegraph, Pin, Json, Password Generator
+- [x] Pin, Json, Password Generator
 - [x] Ban, Mute, Unmute, Etc... Group Manager
 - [x] Custom Welcome Message
 - [x] Advanced Admin Panel
@@ -88,12 +88,30 @@
 </details>
 
 <details>
+<summary><b>Deploy to VPS</b></summary>
+
+```bash
+apt update && apt upgrade -y
+
+apt install git -y  
+
+git clone https://github.com/MrMKN/PROFESSOR-BOT 
+
+cd PROFESSOR-BOT
+
+bash vps.sh
+```
+</details>
+
+<details>
 <summary><b>Basic Commands</b></summary>
 
 ```
 start - check bot alive
 settings - get settings 
 logs - to get the rescent errors
+restart - restart the server
+update - update from git latest 
 stats - to get status of files in db.
 filter - add manual filters
 filters - view filters
@@ -133,6 +151,6 @@ broadcast - to broadcast a message to all Eva Maria users
 
 ## Disclaimer
 [![GNU Affero General Public License 2.0](https://www.gnu.org/graphics/agplv3-155x51.png)](https://www.gnu.org/licenses/agpl-3.0.en.html#header)    
-Licensed under [GNU AGPL 2.0.](https://github.com/MrMKN/PROFESSOR-BOT/blob/main/LICENSE)
-Selling The Codes To Other People For Money Is *Strictly Prohibited*.
+Licensed under [GNU AGPL 3.0.](https://github.com/MrMKN/PROFESSOR-BOT/blob/main/LICENSE)
+Selling The Codes To Other People For Money Is *Strictly Prohibited*. (its external alert)
 
